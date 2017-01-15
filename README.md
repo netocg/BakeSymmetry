@@ -2,8 +2,8 @@
 A User Script to mirror and bake Mari's Paint buffer
 
 # Credits
-David Eschrich - Original creator
+David Eschrich - Original developer
 
-Antonio Neto - Contributor
+Antonio Neto - Updates contributor
 
-John Crowe - code refactor
+John Crowe - Code refactor
