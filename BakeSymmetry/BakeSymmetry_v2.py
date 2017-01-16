@@ -57,13 +57,11 @@ class BakeSymmetry(PySide.QtGui.QWidget):
         #Use a try in case there is something already connect or disconnect from some previous option, like switching between modes 0 and 1.
         try:
             self.bSymmetry.clicked.disconnect(self.mirror_bake)
-            print "bsymmetry disconnected"
         except:
             pass                        
         try:
             paintBuffer = mari.canvases.paintBuffer()
             paintBuffer.aboutToBake.disconnect(self.mirror_bake)
-            print "paintBuffer disconnected"
         except:
             pass    
 
