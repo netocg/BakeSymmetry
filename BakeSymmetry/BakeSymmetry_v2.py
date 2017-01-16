@@ -9,9 +9,9 @@ class BakeSymmetry(PySide.QtGui.QWidget):
         self.script_path = self.script_path()
         self.scriptIconDir = os.path.join(self.script_path, 'Icons')
         print "V2 BAKE ICONS: " + self.scriptIconDir
-
+        
         self.initUI()
-        #self.shortcuts()
+        #self.shortcuts_menu()
 
     
     def initUI(self):
@@ -50,24 +50,30 @@ class BakeSymmetry(PySide.QtGui.QWidget):
 
         self.setLayout(grid)
 
-        self.bSymmetry.clicked.connect(self.mirror_bake)
+        self.SymmetryMode()
         mari.utils.connect(self.comboSymmetryXYZ.activated[str], lambda: self.SymmetryMode())
 
-    def SymmetryMode(self):
-        paintBuffer = mari.canvases.paintBuffer()    
-        if self.comboSymmetryXYZ.currentIndex() == 2:
+    def disconnectBakeFunction(self):        
+        #Use a try in case there is something already connect or disconnect from some previous option, like switching between modes 0 and 1.
+        try:
             self.bSymmetry.clicked.disconnect(self.mirror_bake)
+            print "bsymmetry disconnected"
+        except:
+            pass                        
+        try:
+            paintBuffer = mari.canvases.paintBuffer()
+            paintBuffer.aboutToBake.disconnect(self.mirror_bake)
+            print "paintBuffer disconnected"
+        except:
+            pass    
+
+    def SymmetryMode(self):
+        paintBuffer = mari.canvases.paintBuffer()
+        if self.comboSymmetryXYZ.currentIndex() == 2:
+            self.disconnectBakeFunction()
             paintBuffer.aboutToBake.connect(self.mirror_bake)
         else:
-            #Use a try in case there is something already connect or disconnect from some previous option, like switching between modes 0 and 1.
-            try:
-                self.bSymmetry.clicked.disconnect(self.mirror_bake)
-            except:
-                pass                        
-            try:
-                paintBuffer.aboutToBake.disconnect(self.mirror_bake)
-            except:
-                pass
+            self.disconnectBakeFunction()
             self.bSymmetry.clicked.connect(self.mirror_bake)
 
     def script_path(self):
@@ -208,12 +214,11 @@ bakeWidget = BakeSymmetry()
 
 #Try to remove any previous Bake Symmetry V2 created palette in order to create a new one in case the user had closed the palette UI.
 try:
-    mari.palettes.remove("Bake Symmetry V2")
+    pal = mari.palettes.get("Bake Symmetry V2")    
+    pal.show()
 except ValueError:
-    pass
-
-pal = mari.palettes.create("Bake Symmetry V2", bakeWidget)
-pal.show()
+    pal = mari.palettes.create("Bake Symmetry V2", bakeWidget)
+    pal.show()
 
 if __name__ == "__main__":
     BakeSymmetry()
