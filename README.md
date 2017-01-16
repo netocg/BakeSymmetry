@@ -4,7 +4,7 @@ A User Script to mirror and bake Mari's Paint buffer
 # Installation
 Clone/Download the repossitory as a zip file.
 
-Extract the content from the BakeSymmetry-master folder to your .../Mari/Scripts/ diretory.
+Extract the content from the BakeSymmetry-master folder to your .../Mari/Scripts/ directory.
 
 Start Mari and enjoy it.
 
