@@ -7,29 +7,21 @@ class BakeSymmetry(PySide.QtGui.QWidget):
     def __init__(self):
         super(BakeSymmetry, self).__init__()
         self.script_path = self.script_path()
-        self.scriptIconDir = os.path.join(self.script_path, 'Icons')
-        print "V2 BAKE ICONS: " + self.scriptIconDir
         
         self.initUI()
-        #self.shortcuts_menu()
-
+        
     
     def initUI(self):
         ''' Creating UI and Connections '''
-
-        bakeIcon = PySide.QtGui.QIcon()
-        bakeIcon.addPixmap(PySide.QtGui.QPixmap('%s/BakeShader.png' % self.scriptIconDir))
 
         grid = PySide.QtGui.QGridLayout()
         grid.setSpacing(10)
 
         # Combo Box
         self.comboSymmetryXYZ = PySide.QtGui.QComboBox()
-        self.comboSymmetryXYZ.setToolTip("Defines the mode of how Symmetry Paint Buffer will work. \nManual Clear Buffer - Does not clear the buffer after the paint get's mirrored through the symmetry axis by clicking on the 'bake button'. \nAuto Clear Buffer - Automatically clear the buffer after the paint get's mirrored through the symmetry axis by clicking on the 'bake button'. \nAuto Mirror Paint - Automate the process of mirror, bake&clear the paint buffer into the symmetry axis every time you or Mari is baking some paint.")
-        self.comboSymmetryXYZ.addItem("Manual Clear Buffer")
-        self.comboSymmetryXYZ.addItem("Auto Clear Buffer")
-        self.comboSymmetryXYZ.addItem("Auto Mirror Paint")
-        grid.addWidget(self.comboSymmetryXYZ,0,0,1,2)
+        self.comboSymmetryXYZ.addItem("Off")
+        self.comboSymmetryXYZ.addItem("On")
+        grid.addWidget(self.comboSymmetryXYZ,0,0,1)
 
         # Radio Buttons
         self.x_axis = PySide.QtGui.QRadioButton("X")
@@ -42,37 +34,20 @@ class BakeSymmetry(PySide.QtGui.QWidget):
         grid.addWidget(self.y_axis,0,3)
         grid.addWidget(self.z_axis,0,4)
 
-        # Bake Button
-        self.bSymmetry = PySide.QtGui.QPushButton("Bake")
-        self.bSymmetry.setIcon(bakeIcon)
-        self.bSymmetry.setToolTip("Bake the paint from the buffer when using the 'Manual Clear Buffer' or the 'Auto Clear Buffer' option.")
-        grid.addWidget(self.bSymmetry,1,0,5,0)
-
         self.setLayout(grid)
 
         self.SymmetryMode()
         mari.utils.connect(self.comboSymmetryXYZ.activated[str], lambda: self.SymmetryMode())
 
-    def disconnectBakeFunction(self):        
-        #Use a try in case there is something already connect or disconnect from some previous option, like switching between modes 0 and 1.
-        try:
-            self.bSymmetry.clicked.disconnect(self.mirror_bake)
-        except:
-            pass                        
-        try:
-            paintBuffer = mari.canvases.paintBuffer()
-            paintBuffer.aboutToBake.disconnect(self.mirror_bake)
-        except:
-            pass    
-
     def SymmetryMode(self):
         paintBuffer = mari.canvases.paintBuffer()
-        if self.comboSymmetryXYZ.currentIndex() == 2:
-            self.disconnectBakeFunction()
+        if self.comboSymmetryXYZ.currentIndex() == 1:
             paintBuffer.aboutToBake.connect(self.mirror_bake)
         else:
-            self.disconnectBakeFunction()
-            self.bSymmetry.clicked.connect(self.mirror_bake)
+            try:
+                paintBuffer.aboutToBake.disconnect(self.mirror_bake)
+            except:
+                pass
 
     def script_path(self):
         ''' Loops through the Mari user dirs finding the script location '''
@@ -167,7 +142,7 @@ class BakeSymmetry(PySide.QtGui.QWidget):
         paintBuffer.setRotation(pb_rotation)
 
         #disconnect to avoid looping
-        if self.comboSymmetryXYZ.currentIndex() == 2:
+        if self.comboSymmetryXYZ.currentIndex() == 1:
             paintBuffer.aboutToBake.disconnect(self.mirror_bake)
 
         #Bake from the mirrored position first
@@ -185,15 +160,6 @@ class BakeSymmetry(PySide.QtGui.QWidget):
 
         currentBehave = mari.projection.getProperty("Projection/bakeBehavior")
 
-        # Set behaviour of bake
-        #print self.comboSymmetryXYZ.currentIndex()
-
-        if self.comboSymmetryXYZ.currentIndex() == 0:
-            mari.projection.setProperty("Projection/bakeBehavior", "Manual")
-        else:
-            mari.projection.setProperty("Projection/bakeBehavior", "AutoBakeAndClear")
-        
-        #Bake again from the original position
         bake.trigger()
         mari.projection.setProperty("Projection/bakeBehavior", currentBehave)
 
@@ -202,8 +168,8 @@ class BakeSymmetry(PySide.QtGui.QWidget):
         self.clearType = self.comboSymmetryXYZ.currentIndex()
         #print self.clearType
 
-        #reconnect if was previously disconnected.
-        if self.comboSymmetryXYZ.currentIndex() == 2:
+        #reconnect now that we already passed the bake steps and avoided the loop.
+        if self.comboSymmetryXYZ.currentIndex() == 1:
             paintBuffer.aboutToBake.connect(self.mirror_bake)
 
 
